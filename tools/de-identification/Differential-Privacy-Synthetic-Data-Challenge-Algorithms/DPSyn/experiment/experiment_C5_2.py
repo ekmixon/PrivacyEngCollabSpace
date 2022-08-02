@@ -8,11 +8,11 @@ from experiment.experiment_C5 import Experiment_C5
 class Experiment_C5_2(Experiment_C5):
     def __init__(self, path, anonymization, synthesizer):
         super(Experiment_C5_2, self).__init__(path, anonymization, synthesizer)
-        
+
         # this function specify the attributes to be compressed, do not consume privacy budget
         # the consumed privacy budget for recoded attributes are calculated in function configuration_C5_2()
         self.attributes_group.use_recode_scheme_3()
-        
+
         # construct noisy views based on configuration A1
         # this function is the only part that touches dataset and consumes privacy budget
         self.configuration_C5_2()
@@ -20,19 +20,19 @@ class Experiment_C5_2(Experiment_C5):
         # consist noisy views
         # post-processing code
         for view_group_name in ["A", "AGE1", "AGE2", "SL"]:
-            self.logger.info("consist for group %s" % (view_group_name,))
-            
+            self.logger.info(f"consist for group {view_group_name}")
+
             self.update_num_categories(view_group_name)
             self.consist_views(self.views_group[view_group_name], self.views_consist_key[view_group_name])
 
         # generate synthetic dataset
         # post-processing code
         self.synthesize_records()
-        
+
         # fill in some attributes based on mapping and decode attributes
         # post-precessing code
         self.post_processing()
-        
+
         self.generate_submission_dataset(self.synthesized_records)
     
     def configuration_C5_2(self):

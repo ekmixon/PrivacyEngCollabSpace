@@ -91,16 +91,16 @@ class PreprocessAttribute:
         return age_bin
     
     def bucketize_age_2(self):
-        age_bin = [x for x in range(31)]
+        age_bin = list(range(31))
         age_bin += [31 + 2 * x for x in range(4)]
         age_bin += [39 + 3 * x for x in range(7)]
         age_bin += [60 + 5 * x for x in range(3)]
         age_bin += [75, 101]
-    
+
         age_bin = np.array(age_bin)
-    
+
         self.bucketize_attribute("AGE", age_bin)
-    
+
         return age_bin
     
     def bucketize_incwage_4(self):

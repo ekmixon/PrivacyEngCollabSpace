@@ -32,20 +32,20 @@ class RecodeAttribute:
         attributes_group = self.attributes_group.recode_group_index[attributes_group_key]
         indicator = np.zeros(len(self.num_categories), dtype=np.uint8)
         indicator[attributes_group] = 1
-    
+
         # choose the cells with values above threshold
         view = View(indicator, self.num_categories)
         view.calculate_tuple_key()
         view.count_records(self.records)
-    
+
         if is_anonymize or self.epsilon == -1.0:
             if epsilon != 0.0:
                 view.count += np.random.laplace(scale=sensitivity / epsilon, size=view.num_key)
             else:
                 view.count += np.random.normal(scale=gauss_sigma, size=view.num_key)
-    
+
         self.attributes_group_views_dict[attributes_group_key] = view
-        
+
         if recode_times == 0:
             self.num_records_estimation[0] += np.sum(view.count)
 

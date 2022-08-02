@@ -30,20 +30,20 @@ class Mechanism:
             domain_info[col] = sorted(df[col].unique())
         ## done using ground truth data 
 
-        domain = { }
-        for col in self.specs:
-            if col in domain_info:
-                domain[col] = len(domain_info[col])
-            else:
-                domain[col] = self.specs[col]['maxval'] + 1
+        domain = {
+            col: len(domain_info[col])
+            if col in domain_info
+            else self.specs[col]['maxval'] + 1
+            for col in self.specs
+        }
 
         domain['INCWAGE_A'] = 52
         domain['INCWAGE_B'] = 8
         del domain['INCWAGE']
         #domain['INCWAGE'] = 5002
         domain['VALUEH'] = 5003
-        
-        self.domain_info = domain_info 
+
+        self.domain_info = domain_info
         self.domain = Domain.fromdict(domain)
 
     def setup(self):
@@ -64,7 +64,7 @@ class Mechanism:
 
         mapping = { k : k // 100 for k in range(5000) }
         mapping[999998] = 51
-        mapping.update({ i : 50 for i in range(5000, 999998) })
+        mapping |= { i : 50 for i in range(5000, 999998) }
         df['INCWAGE_A'] = df['INCWAGE'].map(mapping)
 
         mod_mapping = { k : 0 for k in range(5000, 999999) }
@@ -88,17 +88,11 @@ class Mechanism:
 
         df['INCWAGE_B'] = df['INCWAGE'].map(mod_mapping)
 
-        mapping = {}
-        for i in range(9999998):
-            if i <= 25000:
-                mapping[i] = i // 5
-            else:
-                mapping[i] = 5000
-
+        mapping = {i: i // 5 if i <= 25000 else 5000 for i in range(9999998)}
         mapping[9999998] = 5001
         mapping[9999999] = 5002
         df['VALUEH'] = df['VALUEH'].map(mapping) 
-    
+
 
         return Dataset(df, self.domain)
 
@@ -142,26 +136,27 @@ class Mechanism:
             vals = mod_mapping[g.name]
             g['INCWAGE_C'] = np.random.choice(vals, g.shape[0])
             return g
+
         df = df.groupby('INCWAGE_B').apply(foo)
-        
+
         df['INCWAGE'] = df['INCWAGE_A']*100 + df['INCWAGE_C']
         df.loc[df.INCWAGE_A == 50, 'INCWAGE'] = 5000
         df.loc[df.INCWAGE_A == 51, 'INCWAGE'] = 999998
 
         for col in self.specs:
-            if not col in df:
+            if col not in df:
                 df[col] = 0
-        
+
         for col in self.domain_info:
             vals = self.domain_info[col]
             mapping = dict(zip(range(len(vals)), vals))
             df[col] = df[col].map(mapping)
- 
+
         mapping = dict(zip(range(5001), range(0,25001,5)))
         mapping[5001] = 9999998
         mapping[5002] = 9999999
         df['VALUEH'] = df['VALUEH'].map(mapping) 
-   
+
         self.synthetic = df[self.column_order]
         return df
 

@@ -13,11 +13,11 @@ class Experiment:
         self.input_path = path["input_path"]
         self.output_path = path["output_path"]
         self.specs_path = path["specs_path"]
-        
+
         self.epsilon = anonymization["epsilon"]
         self.delta = anonymization["delta"]
         self.sensitivity = anonymization["sensitivity"]
-        
+
         self.load_dataset()
 
         self.num_records = self.records.shape[0]
@@ -26,7 +26,7 @@ class Experiment:
 
     def load_dataset(self):
         self.logger.info("loading original dataset")
-    
+
         csv = LoadCSV()
         csv.load_original_records(self.input_path)
         csv.load_dataset_parameters(self.input_path, self.specs_path)
@@ -38,10 +38,10 @@ class Experiment:
         self.dataset_header = csv.dataset_header
         self.attri_name_index_mapping = csv.attri_name_index_mapping
         self.code_mapping = csv.code_mapping
-    
+
         self.original_num_categories = np.copy(self.num_categories)
         self.original_records = np.copy(self.records)
-    
+
         self.logger.info("loaded original dataset")
 
     def generate_submission_dataset(self, records):
@@ -50,9 +50,4 @@ class Experiment:
         submission.generate_csv(self.dataset_header, self.code_mapping, self.output_path)
             
     def generate_header_mapping(self):
-        header_mapping = {}
-        
-        for index, name in enumerate(self.dataset_header):
-            header_mapping[name] = index
-            
-        return header_mapping
+        return {name: index for index, name in enumerate(self.dataset_header)}

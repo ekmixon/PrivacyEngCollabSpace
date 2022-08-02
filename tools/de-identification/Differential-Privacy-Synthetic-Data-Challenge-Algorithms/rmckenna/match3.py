@@ -39,9 +39,7 @@ def reverse_data(data, supports):
         newdom[col] = int(support.size)
         idx, extra = np.where(support)[0], np.where(~support)[0]
         mask = df[col] == mx
-        if extra.size == 0:
-            pass
-        else:
+        if extra.size != 0:
             df.loc[mask, col] = np.random.choice(extra, mask.sum())
         df.loc[~mask, col] = idx[df.loc[~mask, col]]
     newdom = Domain.fromdict(newdom)
@@ -59,6 +57,7 @@ def moments_calibration(round1, round2, eps, delta):
         rdp = rdp1 + rdp2
         privacy = get_privacy_spent(orders, rdp, target_delta=delta)
         return privacy[0] - eps + 1e-8
+
     low = 1.0
     high = 1.0
     while obj(low) < 0:
@@ -66,7 +65,7 @@ def moments_calibration(round1, round2, eps, delta):
     while obj(high) > 0:
         high *= 2.0
     sigma = optimize.bisect(obj, low, high)
-    assert obj(sigma) - 1e-8 <= 0, 'not differentially private' # true eps <= requested eps
+    assert obj(sigma) <= 0 + 1e-8, 'not differentially private'
     return sigma
 
 class Match3(Mechanism):
@@ -105,7 +104,7 @@ class Match3(Mechanism):
         weights /= np.linalg.norm(weights) # now has L2 norm = 1
 
         supports = {}
-  
+
         self.measurements = []
         for col, wgt in zip(self.round1, weights):
             ##########################
@@ -115,7 +114,7 @@ class Match3(Mechanism):
             hist = data.project(proj).datavector()
             noise = sigma*np.random.randn(hist.size)
             y = wgt*hist + noise
-          
+
             #####################
             ## Post-processing ##
             #####################
@@ -152,7 +151,7 @@ class Match3(Mechanism):
         weights[self.round2.index(('SEX','INCWAGE_A'))] *= 2.0
         weights[self.round2.index(('CITY','INCWAGE_A'))] *= 2.0
         weights /= np.linalg.norm(weights) # now has L2 norm = 1
-   
+
         for proj, wgt in zip(self.round2, weights):
             #########################
             ## Noise-addition step ##
@@ -193,17 +192,18 @@ class Match3(Mechanism):
                 y = np.maximum(y, 1)
                 y /= y.sum()
                 oneway[p] = Factor(self.domain.project(p), y)
-            marginals = {}
-            for cl in engine.model.cliques:
-                marginals[cl] = reduce(lambda x,y: x*y, [oneway[p] for p in cl])
+            marginals = {
+                cl: reduce(lambda x, y: x * y, [oneway[p] for p in cl])
+                for cl in engine.model.cliques
+            }
 
             theta = engine.model.mle(marginals)
             engine.potentials = theta
             engine.marginals = engine.model.belief_prop_fast(theta)
 
-        checkpt = self.save[:-4] + '-checkpt.csv'
+        checkpt = f'{self.save[:-4]}-checkpt.csv'
         for i in range(self.iters // 500):
-            
+
             engine.infer(self.measurements, engine='MD', callback=cb)
 
             if i % 4 == 3:
@@ -211,7 +211,7 @@ class Match3(Mechanism):
                 self.synthetic = reverse_data(self.synthetic, self.supports)
                 self.transform_domain()
                 self.synthetic.to_csv(checkpt, index=False)
-   
+
         if os.path.exists(checkpt):
             os.remove(checkpt)
 
@@ -224,14 +224,13 @@ def default_params():
 
     :returns: a dictionary of default parameter settings for each command line argument
     """
-    params = {}
-    params['dataset'] = 'competitor_pack/data/colorado.csv'
-    params['specs'] = 'competitor_pack/data/colorado-specs.json'
-    params['epsilon'] = 1.0
-    params['delta'] = 2.2820544e-12
-    params['save'] = 'out.csv'
-    
-    return params
+    return {
+        'dataset': 'competitor_pack/data/colorado.csv',
+        'specs': 'competitor_pack/data/colorado-specs.json',
+        'epsilon': 1.0,
+        'delta': 2.2820544e-12,
+        'save': 'out.csv',
+    }
 
 if __name__ == '__main__':
 

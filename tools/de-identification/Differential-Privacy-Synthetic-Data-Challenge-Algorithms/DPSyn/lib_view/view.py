@@ -24,12 +24,12 @@ class View:
     def calculate_encode_num(self, num_categories):
         if self.ways != 0:
             categories_index = self.attributes_index
-            
+
             categories_num = num_categories[categories_index]
             categories_num = np.roll(categories_num, 1)
             categories_num[0] = 1
             self.cum_mul = np.cumprod(categories_num)
-    
+
             categories_num = num_categories[categories_index]
             categories_num = np.roll(categories_num, self.ways - 1)
             categories_num[-1] = 1
@@ -38,13 +38,13 @@ class View:
     
     def calculate_tuple_key(self):
         self.tuple_key = np.zeros([self.num_key, self.ways], dtype=np.uint32)
-        
+
         if self.ways != 0:
             for i in range(self.attributes_index.shape[0]):
                 index = self.attributes_index[i]
                 categories = np.arange(self.num_categories[index])
                 column_key = np.tile(np.repeat(categories, self.encode_num[i]), self.cum_mul[i])
-                
+
                 self.tuple_key[:, i] = column_key
         else:
             self.tuple_key = np.array([0], dtype=np.uint32)
@@ -62,17 +62,14 @@ class View:
             self.normalize_count = self.count
         else:
             self.normalize_count = self.count / np.sum(self.count)
-        
+
         return self.normalize_count
     
     def calculate_count_matrix(self):
-        shape = []
-        
-        for attri in self.attributes_index:
-            shape.append(self.num_categories[attri])
-            
+        shape = [self.num_categories[attri] for attri in self.attributes_index]
+
         self.count_matrix = np.copy(self.count).reshape(tuple(shape))
-        
+
         return self.count_matrix
         
     def reserve_original_count(self):
@@ -87,14 +84,12 @@ class View:
     ################################### functions for outside invoke #########################
     def calculate_encode_num_general(self, attributes_index):
         categories_index = attributes_index
-    
+
         categories_num = self.num_categories[categories_index]
         categories_num = np.roll(categories_num, attributes_index.size - 1)
         categories_num[-1] = 1
         categories_num = np.flip(categories_num)
-        encode_num = np.flip(np.cumprod(categories_num))
-        
-        return encode_num
+        return np.flip(np.cumprod(categories_num))
     
     def count_records_general(self, records):
         count = np.zeros(self.num_key)
@@ -111,21 +106,18 @@ class View:
         return count / np.sum(count)
 
     def calculate_count_matrix_general(self, count):
-        shape = []
-    
-        for attri in self.attributes_index:
-            shape.append(self.num_categories[attri])
-    
+        shape = [self.num_categories[attri] for attri in self.attributes_index]
+
         return np.copy(count).reshape(tuple(shape))
     
     def calculate_tuple_key_general(self, unique_value_list):
         self.tuple_key = np.zeros([self.num_key, self.ways], dtype=np.uint32)
-    
+
         if self.ways != 0:
             for i in range(self.attributes_index.shape[0]):
                 categories = unique_value_list[i]
                 column_key = np.tile(np.repeat(categories, self.encode_num[i]), self.cum_mul[i])
-            
+
                 self.tuple_key[:, i] = column_key
         else:
             self.tuple_key = np.array([0], dtype=np.uint32)

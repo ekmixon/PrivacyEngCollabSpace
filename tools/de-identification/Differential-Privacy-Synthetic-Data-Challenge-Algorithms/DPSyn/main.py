@@ -25,7 +25,7 @@ def config_logger():
 def main(path, anonymization, synthesizer):
     if anonymization["epsilon"] <= 0.2:
         Experiment_C5_1(path, anonymization, synthesizer)
-    elif anonymization["epsilon"] > 0.2:
+    else:
         Experiment_C5_2(path, anonymization, synthesizer)
 
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # parameters for views generation
     parser.add_argument('--consist_iterations', type=int, default=100,
         help="specify the number of iterations for consist procedure")
-    
+
     # parameters for dpsyn_mcf method
     parser.add_argument('--synthesizer_num_records', type=int, default=662000,
         help="specify the number records to be generated")
@@ -71,5 +71,5 @@ if __name__ == "__main__":
         "update_iterations": args.update_iterations,
         "consist_iterations": args.consist_iterations,
     }
-    
+
     main(path, anonymization, synthesizer)

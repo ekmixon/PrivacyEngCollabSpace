@@ -29,7 +29,7 @@ class AttributeGroup:
                 "AGEMONTH",
                 "DURUNEMP",
                 "GQTYPED",
-                
+
                 "RACED",
                 "HISPAND",
             },
@@ -49,7 +49,7 @@ class AttributeGroup:
                 "MIGMET5",
                 "MIGCITY5",
                 "MIGCOUNTY",
-                
+
                 "EDUCD",
                 "EMPSTATD",
                 "CLASSWKRD",
@@ -63,22 +63,23 @@ class AttributeGroup:
                 "UCLASSWK"
             }
         }
-    
+
         self.recode_group_index = {}
-    
+
         self.translate_recode_group()
         self.translate_recode_single()
         
     def translate_recode_group(self):
         self.recode_group_key_summary = []
-        
+
         for _, group in self.recode_group_key.items():
             for key, value in group.items():
-                index_list = []
-                
-                for attribute_name in value:
-                    index_list.append(self.attri_name_index_mapping[attribute_name])
-                
+                index_list = [
+                    self.attri_name_index_mapping[attribute_name]
+                    for attribute_name in value
+                ]
+
+
                 self.recode_group_index[key] = index_list
                 self.recode_group_key_summary.append(key)
         
